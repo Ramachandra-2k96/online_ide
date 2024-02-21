@@ -37,7 +37,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'ide_app'
+    'ide_app',
 ]
 
 MIDDLEWARE = [
@@ -128,15 +128,3 @@ STATICFILES_DIRS = [
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # settings.py
-
-from decouple import config
-
-# Firebase Configuration
-FIREBASE_CONFIG = {
-    'apiKey': config('FIREBASE_API_KEY'),
-    'authDomain': config('FIREBASE_AUTH_DOMAIN'),
-    'projectId': config('FIREBASE_PROJECT_ID'),
-    'storageBucket': config('FIREBASE_STORAGE_BUCKET'),
-    'messagingSenderId': config('FIREBASE_MESSAGING_SENDER_ID'),
-    'appId': config('FIREBASE_APP_ID'),
-}
