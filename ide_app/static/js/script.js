@@ -69,7 +69,6 @@ editorRef.on('value', (snapshot) => {
 });
 
 
-// Set up a listener for subsequent changes in the editor and update the database
 function onEditorChange(delta) {
     const editorSession = editor.getSession();
     const currentContent = editorSession.getValue();
@@ -81,9 +80,17 @@ function onEditorChange(delta) {
         content: currentContent,
         cursorPosition: cursorPosition,
         'selection/start': { row: selection.start.row, column: selection.start.column },
-        'selection/end': { row: selection.end.row, column: selection.end.column+1 }
+        'selection/end': { row: selection.end.row, column: selection.end.column + 1 }
     });
+
+    // Deselect text after updating cursor position
+    editorSession.getSelection().clearSelection();
 }
+
+// Disable auto select on load
+editor.on('editor', function () {
+    editor.getSession().getSelection().clearSelection();
+});
 
 // Set up the initial 'change' event listener
 editor.on('change', onEditorChange);
