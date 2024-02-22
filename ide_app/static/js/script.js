@@ -30,7 +30,7 @@ const editorRef = database.ref('editor');
 
 // Get the Ace editor element by ID ('editor' in this case)
 const editor = ace.edit('editor');
-editor.setBehavioursEnabled(true);
+editor.setBehavioursEnabled(false);
 // Set up a one-time listener for initial data retrieval
 function onEditorChange(delta) {
     const editorSession = editor.getSession();
@@ -56,7 +56,6 @@ editorRef.on('value', (snapshot) => {
         const { content, cursorPosition, selection } = data;
 
         editor.off('change', onEditorChange);
-
         const editorSession = editor.getSession();
 
         // Update editor content only if it's different
@@ -68,7 +67,6 @@ editorRef.on('value', (snapshot) => {
         if (cursorPosition && cursorPosition.row !== undefined && cursorPosition.column !== undefined) {
             editor.gotoLine(cursorPosition.row + 1, cursorPosition.column+1);
         }
-
         editor.on('change', onEditorChange);
     }
 });
