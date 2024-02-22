@@ -30,8 +30,25 @@ const editorRef = database.ref('editor');
 
 // Get the Ace editor element by ID ('editor' in this case)
 const editor = ace.edit('editor');
-
+editor.setBehavioursEnabled(true);
 // Set up a one-time listener for initial data retrieval
+function onEditorChange(delta) {
+    const editorSession = editor.getSession();
+    const currentContent = editorSession.getValue();
+    const cursorPosition = editorSession.getSelection().getCursor();
+    const selection = editorSession.getSelection().getRange();
+
+    // Update only the necessary fields in the database
+    editorRef.update({
+        content: currentContent,
+        cursorPosition: cursorPosition,
+        'selection/start': { row: selection.start.row, column: selection.start.column },
+        'selection/end': { row: selection.end.row, column: selection.end.column + 1 }
+    });
+
+    // Deselect text after updating cursor position
+    editorSession.getSelection().clearSelection();
+}
 editorRef.on('value', (snapshot) => {
     const data = snapshot.val();
 
@@ -49,25 +66,12 @@ editorRef.on('value', (snapshot) => {
 
         // Set the cursor position
         if (cursorPosition && cursorPosition.row !== undefined && cursorPosition.column !== undefined) {
-            editor.gotoLine(cursorPosition.row + 1, cursorPosition.column);
-        }
-        // Set the selection range
-        if (selection && selection.start && selection.end) {
-            const startRow = selection.start.row !== undefined ? selection.start.row : 0;
-            const startColumn = selection.start.column !== undefined ? selection.start.column : 0;
-            const endRow = selection.end.row !== undefined ? selection.end.row : 0;
-            const endColumn = selection.end.column !== undefined ? selection.end.column : 0;
-
-            editorSession.getSelection().setSelectionRange({
-                start: { row: startRow, column: startColumn },
-                end: { row: endRow, column: endColumn }
-            });
+            editor.gotoLine(cursorPosition.row + 1, cursorPosition.column+1);
         }
 
         editor.on('change', onEditorChange);
     }
 });
-
 
 function onEditorChange(delta) {
     const editorSession = editor.getSession();
