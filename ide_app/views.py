@@ -8,28 +8,41 @@ from online_ide.settings import BASE_DIR
 def home(request):
     return render(request,"index.html")
 
+import sys
+from io import StringIO
+
 @csrf_exempt
 def compile_code(request):
-    response_data={}
+    response_data = {}
+    
     if request.method == 'POST':
         language = request.POST.get('language', '').lower()
-        code = request.POST.get('code', '')
+        code_to_execute = request.POST.get('code', '')
         output, error = "", ""
+
         if language == "python":
-            random_filename = os.path.join(os.path.join(BASE_DIR,"temp"), f"{os.urandom(16).hex()}.{language}")
-            with open(random_filename, "w") as program_file:
-                program_file.write(code)
-            python_executable = os.path.join(BASE_DIR,"venv/bin/python")  
-            command = [python_executable, random_filename]
-            process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            output, error = process.communicate()
-            output = output.decode('utf-8')
-            error = error.decode('utf-8')
-            # Clean up: Delete the temporary file
-            os.remove(random_filename)
+            # Use a temporary namespace for code execution
+            temp_namespace = {}
+
+            # Redirect stdout and stderr to capture output and error
+            sys.stdout = StringIO()
+            sys.stderr = StringIO()
+
+            try:
+                # Execute the provided Python code
+                exec(code_to_execute, temp_namespace)
+
+                # Capture standard output and standard error
+                output = sys.stdout.getvalue()
+                error = sys.stderr.getvalue()
+            except Exception as e:
+                error = str(e)
+            finally:
+                # Reset stdout and stderr
+                sys.stdout = sys.__stdout__
+                sys.stderr = sys.__stderr__
 
             response_data = {
-                'command': ' '.join(command) if command else '',
                 'output': output if output else '',
                 'error': error if error else '',
             }
@@ -37,4 +50,3 @@ def compile_code(request):
         return JsonResponse(response_data)
     else:
         return JsonResponse({'error': 'Invalid request method'})
-
